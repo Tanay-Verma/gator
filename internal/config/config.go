@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -14,42 +13,52 @@ type Config struct {
 	CurrentUserName string `json:"current_user_name"`
 }
 
-func Read() Config {
-	fullPath := getConfigFilePath()
+func Read() (Config, error) {
+	var gatorconfig Config
+
+	fullPath, err := getConfigFilePath()
+	if err != nil {
+		return gatorconfig, err
+	}
 	data, err := os.ReadFile(fullPath)
 	if err != nil {
-		log.Fatal("Error in reading gatorconfig.json Error:", err)
+		return gatorconfig, err
 	}
 
-	var gatorconfig Config
 	if err := json.Unmarshal(data, &gatorconfig); err != nil {
-		log.Fatal("Error in parsing gatorconfig.json Error:", err)
+		return gatorconfig, nil
 	}
 
-	return gatorconfig
+	return gatorconfig, nil
 }
 
-func (c *Config) SetUser(username string) {
+func (c *Config) SetUser(username string) error {
 	c.CurrentUserName = username
+
 	data, err := json.Marshal(c)
 	if err != nil {
-		log.Fatal("Error in marshaling the config. Error:", err)
+		return err
 	}
 
-	fullPath := getConfigFilePath()
+	fullPath, err := getConfigFilePath()
+	if err != nil {
+		return err
+	}
 
 	err = os.WriteFile(fullPath, data, os.ModeAppend)
 	if err != nil {
-		log.Fatal("Error in writing to gatorconfig.json file. Error:", err)
+		return err
 	}
+
+	return nil
 }
 
-func getConfigFilePath() string {
+func getConfigFilePath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatal("Error in reading user home directory. Error:", err)
+		return "", err
 	}
 
 	fullPath := filepath.Join(homeDir, confiFileName)
-	return fullPath
+	return fullPath, nil
 }

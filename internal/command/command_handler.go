@@ -42,8 +42,8 @@ func HandlerRegister(s *State, cmd Command) error {
 		context.Background(),
 		database.CreateUserParams{
 			Name:      username,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
 		},
 	)
 	if err != nil {
@@ -56,5 +56,31 @@ func HandlerRegister(s *State, cmd Command) error {
 	}
 
 	fmt.Println("New User has been created. User:", newUser)
+	return nil
+}
+
+func HandlerUsers(s *State, cmd Command) error {
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return err
+	}
+
+	for _, u := range users {
+		if u.Name == s.cfg.CurrentUserName {
+			fmt.Printf("* %s (current)\n", u.Name)
+			continue
+		}
+		fmt.Println("*", u.Name)
+	}
+
+	return nil
+}
+
+func HandlerReset(s *State, cmd Command) error {
+	err := s.db.DeleteUsers(context.Background())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -1,11 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
 	"github.com/Tanay-Verma/gator/internal/command"
 	"github.com/Tanay-Verma/gator/internal/config"
+	"github.com/Tanay-Verma/gator/internal/database"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -14,10 +17,14 @@ func main() {
 		log.Fatalf("Error: error reading config: %v", err)
 	}
 
-	state := command.NewState(&cfg)
+	db, err := sql.Open("postgres", cfg.DbURL)
+	dbQueries := database.New(db)
+
+	state := command.NewState(&cfg, dbQueries)
 
 	commands := command.NewCommands()
 	commands.Register("login", command.HandlerLogin)
+	commands.Register("register", command.HandlerRegister)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("Usage: cli <command> [args...]")

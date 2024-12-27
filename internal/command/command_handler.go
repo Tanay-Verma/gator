@@ -118,6 +118,16 @@ func HandlerAddFeed(s *State, cmd Command) error {
 		return err
 	}
 
+	_, err = s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	})
+	if err != nil {
+		return err
+	}
+
 	fmt.Printf("Feed: %v\n", feed)
 
 	return nil
@@ -131,6 +141,51 @@ func HandlerFeeds(s *State, cmd Command) error {
 
 	for _, feed := range feeds {
 		fmt.Printf("* Feed Name: %s | Feed URL: %s | User Name: %s\n", feed.FeedName, feed.Url, feed.UserName)
+	}
+	return nil
+}
+
+func HandlerFollow(s *State, cmd Command) error {
+	if len(cmd.arguments) != 1 {
+		return errors.New("Usage: follow <feed_url>")
+	}
+
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	feed, err := s.db.GetFeedByURL(context.Background(), cmd.arguments[0])
+	if err != nil {
+		return err
+	}
+
+	new_feed_follow, err := s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Feed Name: %s | Follower Name: %s",
+		new_feed_follow.FeedName,
+		new_feed_follow.UserName,
+	)
+
+	return nil
+}
+
+func HandlerFollowing(s *State, cmd Command) error {
+	feedsFollowed, err := s.db.GetFeedFollowsForUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Feeds Followed by %q:\n", s.cfg.CurrentUserName)
+	for _, f := range feedsFollowed {
+		fmt.Printf("* %s\n", f.FeedName)
 	}
 	return nil
 }

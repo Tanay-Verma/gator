@@ -28,10 +28,11 @@ func main() {
 	commands.Register("reset", command.HandlerReset)
 	commands.Register("users", command.HandlerUsers)
 	commands.Register("agg", command.HandlerAgg)
-	commands.Register("addfeed", command.HandlerAddFeed)
+	commands.Register("addfeed", command.MiddlewareLoggedIn(command.HandlerAddFeed))
 	commands.Register("feeds", command.HandlerFeeds)
-	commands.Register("follow", command.HandlerFollow)
-	commands.Register("following", command.HandlerFollowing)
+	commands.Register("follow", command.MiddlewareLoggedIn(command.HandlerFollow))
+	commands.Register("following", command.MiddlewareLoggedIn(command.HandlerFollowing))
+	commands.Register("unfollow", command.MiddlewareLoggedIn(command.HandlerUnfollow))
 
 	if len(os.Args) < 2 {
 		log.Fatalf("Usage: cli <command> [args...]")

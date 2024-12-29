@@ -97,14 +97,9 @@ func HandlerAgg(s *State, cmd Command) error {
 	return nil
 }
 
-func HandlerAddFeed(s *State, cmd Command) error {
+func HandlerAddFeed(s *State, cmd Command, user database.User) error {
 	if len(cmd.arguments) != 2 {
 		return errors.New("Usage: addfeed <feed_name> <feed_url>")
-	}
-
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return err
 	}
 
 	feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
@@ -145,14 +140,9 @@ func HandlerFeeds(s *State, cmd Command) error {
 	return nil
 }
 
-func HandlerFollow(s *State, cmd Command) error {
+func HandlerFollow(s *State, cmd Command, user database.User) error {
 	if len(cmd.arguments) != 1 {
 		return errors.New("Usage: follow <feed_url>")
-	}
-
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return err
 	}
 
 	feed, err := s.db.GetFeedByURL(context.Background(), cmd.arguments[0])
@@ -178,8 +168,8 @@ func HandlerFollow(s *State, cmd Command) error {
 	return nil
 }
 
-func HandlerFollowing(s *State, cmd Command) error {
-	feedsFollowed, err := s.db.GetFeedFollowsForUser(context.Background(), s.cfg.CurrentUserName)
+func HandlerFollowing(s *State, cmd Command, user database.User) error {
+	feedsFollowed, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return err
 	}
@@ -187,5 +177,21 @@ func HandlerFollowing(s *State, cmd Command) error {
 	for _, f := range feedsFollowed {
 		fmt.Printf("* %s\n", f.FeedName)
 	}
+	return nil
+}
+
+func HandlerUnfollow(s *State, cmd Command, user database.User) error {
+	if len(cmd.arguments) != 1 {
+		return errors.New("Usage: unfollow <feed_url>")
+	}
+
+	err := s.db.UnfollowFeed(context.Background(), database.UnfollowFeedParams{
+		UserID: user.ID,
+		Url:    cmd.arguments[0],
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

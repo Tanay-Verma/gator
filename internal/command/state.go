@@ -6,13 +6,13 @@ import (
 )
 
 type State struct {
-	db  *database.Queries
-	cfg *config.Config
+	Db  *database.Queries
+	Cfg *config.Config
 }
 
 func NewState(cfg *config.Config, db *database.Queries) State {
 	return State{
-		cfg: cfg,
-		db:  db,
+		Cfg: cfg,
+		Db:  db,
 	}
 }

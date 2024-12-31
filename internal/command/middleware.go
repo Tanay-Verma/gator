@@ -8,7 +8,7 @@ import (
 
 func MiddlewareLoggedIn(handler func(s *State, cmd Command, user database.User) error) commandHandler {
 	return func(s *State, cmd Command) error {
-		user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+		user, err := s.Db.GetUser(context.Background(), s.Cfg.CurrentUserName)
 		if err != nil {
 			return err
 		}
